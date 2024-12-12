@@ -1,7 +1,3 @@
-# Arquitetura de Microsserviços: Padrão Saga Orquestrado
-
-
-
 ![Arquitetura](assets/geral.png)
 
 ### Sumário:
@@ -10,17 +6,17 @@
 * [Ferramentas utilizadas](#ferramentas-utilizadas)
 * [Arquitetura Proposta](#arquitetura-proposta)
 * [Execução do projeto](#execu%C3%A7%C3%A3o-do-projeto)
-    * [01 - Execução geral via docker-compose](#01---execu%C3%A7%C3%A3o-geral-via-docker-compose)
-    * [02 - Execução geral via automação com script em Python](#02---execu%C3%A7%C3%A3o-geral-via-automa%C3%A7%C3%A3o-com-script-em-python)
-    * [03 - Executando os serviços de bancos de dados e Message Broker](#03---executando-os-servi%C3%A7os-de-bancos-de-dados-e-message-broker)
-    * [04 - Executando manualmente via CLI](#04---executando-manualmente-via-cli)
+  * [01 - Execução geral via docker-compose](#01---execu%C3%A7%C3%A3o-geral-via-docker-compose)
+  * [02 - Execução geral via automação com script em Python](#02---execu%C3%A7%C3%A3o-geral-via-automa%C3%A7%C3%A3o-com-script-em-python)
+  * [03 - Executando os serviços de bancos de dados e Message Broker](#03---executando-os-servi%C3%A7os-de-bancos-de-dados-e-message-broker)
+  * [04 - Executando manualmente via CLI](#04---executando-manualmente-via-cli)
 * [Acessando a aplicação](#acessando-a-aplica%C3%A7%C3%A3o)
 * [Acessando tópicos com Redpanda Console](#acessando-t%C3%B3picos-com-redpanda-console)
 * [Dados da API](#dados-da-api)
-    * [Produtos registrados e seu estoque](#produtos-registrados-e-seu-estoque)
-    * [Endpoint para iniciar a saga](#endpoint-para-iniciar-a-saga)
-    * [Endpoint para visualizar a saga](#endpoint-para-visualizar-a-saga)
-    * [Acesso ao MongoDB](#acesso-ao-mongodb)
+  * [Produtos registrados e seu estoque](#produtos-registrados-e-seu-estoque)
+  * [Endpoint para iniciar a saga](#endpoint-para-iniciar-a-saga)
+  * [Endpoint para visualizar a saga](#endpoint-para-visualizar-a-saga)
+  * [Acesso ao MongoDB](#acesso-ao-mongodb)
 
 ## Tecnologias
 
@@ -36,7 +32,7 @@
 * **docker-compose**
 * **Redpanda Console**
 
-# Ferramentas utilizadas
+## Ferramentas utilizadas
 
 [Voltar ao início](#sum%C3%A1rio)
 
@@ -44,21 +40,22 @@
 * **Docker**
 * **Gradle**
 
-# Arquitetura Proposta
+## Arquitetura Proposta
 
 [Voltar ao início](#sum%C3%A1rio)
 
+aquitetura:
+
 ![Arquitetura](assets/Arquitetura%20Proposta.png)
 
-Em nossa arquitetura, teremos 5 serviços:
+Em nossa arquitetura, teremos 4 serviços:
 
 * **Order-Service**: microsserviço responsável apenas por gerar um pedido inicial, e receber uma notificação. Aqui que teremos endpoints REST para inciar o processo e recuperar os dados dos eventos. O banco de dados utilizado será o MongoDB.
-* **Orchestrator-Service**: microsserviço responsável por orquestrar todo o fluxo de execução da Saga, ele que saberá qual microsserviço foi executado e em qual estado, e para qual será o próximo microsserviço a ser enviado, este microsserviço também irá salvar o processo dos eventos. Este serviço não possui banco de dados.
 * **Product-Validation-Service**: microsserviço responsável por validar se o produto informado no pedido existe e está válido. Este microsserviço guardará a validação de um produto para o ID de um pedido. O banco de dados utilizado será o PostgreSQL.
 * **Payment-Service**: microsserviço responsável por realizar um pagamento com base nos valores unitários e quantidades informadas no pedido. Este microsserviço guardará a informação de pagamento de um pedido. O banco de dados utilizado será o PostgreSQL.
 * **Inventory-Service**: microsserviço responsável por realizar a baixa do estoque dos produtos de um pedido. Este microsserviço guardará a informação da baixa de um produto para o ID de um pedido. O banco de dados utilizado será o PostgreSQL.
 
-Todos os serviços da arquitetura sobem através do arquivo **docker-compose.yml**.
+Todos os serviços da arquitetura irão subir através do arquivo **docker-compose.yml**.
 
 ## Execução do projeto
 
@@ -149,7 +146,6 @@ Você chegará nesta página:
 As aplicações executarão nas seguintes portas:
 
 * Order-Service: 3000
-* Orchestrator-Service: 8080
 * Product-Validation-Service: 8090
 * Payment-Service: 8091
 * Inventory-Service: 8092
@@ -189,7 +185,7 @@ Existem 3 produtos iniciais cadastrados no serviço `product-validation-service`
 * **MOVIES** (5 em estoque)
 * **MUSIC** (9 em estoque)
 
-### Endpoint para iniciar a saga:
+### Endpoint para iniciar a saga
 
 [Voltar ao nível anterior](#dados-da-api)
 
@@ -222,7 +218,7 @@ Resposta:
 
 ```json
 {
-  "id": "64429e987a8b646915b3735f",
+  "id": "65235b034a6fa17dc661679b",
   "products": [
     {
       "product": {
@@ -239,30 +235,32 @@ Resposta:
       "quantity": 1
     }
   ],
-  "createdAt": "2023-04-21T14:32:56.335943085",
-  "transactionId": "1682087576536_99d2ca6c-f074-41a6-92e0-21700148b519"
+  "createdAt": "2023-10-09T01:44:35.655",
+  "transactionId": "1696815875655_44ae5c2d-5549-427f-861c-9eef24676b7c",
+  "totalAmount": 0,
+  "totalItems": 0
 }
 ```
 
-### Endpoint para visualizar a saga:
+### Endpoint para visualizar a saga
 
 [Voltar ao nível anterior](#dados-da-api)
 
 É possível recuperar os dados da saga pelo **orderId** ou pelo **transactionId**, o resultado será o mesmo:
 
-**GET** http://localhost:3000/api/event?orderId=64429e987a8b646915b3735f
+**GET** http://localhost:3000/api/event?orderId=65235b034a6fa17dc661679b
 
-**GET** http://localhost:3000/api/event?transactionId=1682087576536_99d2ca6c-f074-41a6-92e0-21700148b519
+**GET** http://localhost:3000/api/event?transactionId=1696815875655_44ae5c2d-5549-427f-861c-9eef24676b7c
 
 Resposta:
 
 ```json
 {
-  "id": "64429e9a7a8b646915b37360",
-  "transactionId": "1682087576536_99d2ca6c-f074-41a6-92e0-21700148b519",
-  "orderId": "64429e987a8b646915b3735f",
+  "id": "65235b034a6fa17dc661679c",
+  "transactionId": "1696815875655_44ae5c2d-5549-427f-861c-9eef24676b7c",
+  "orderId": "65235b034a6fa17dc661679b",
   "payload": {
-    "id": "64429e987a8b646915b3735f",
+    "id": "65235b034a6fa17dc661679b",
     "products": [
       {
         "product": {
@@ -279,52 +277,50 @@ Resposta:
         "quantity": 1
       }
     ],
-    "totalAmount": 56.40,
-    "totalItems": 4,
-    "createdAt": "2023-04-21T14:32:56.335943085",
-    "transactionId": "1682087576536_99d2ca6c-f074-41a6-92e0-21700148b519"
+    "createdAt": "2023-10-09T01:44:35.655",
+    "transactionId": "1696815875655_44ae5c2d-5549-427f-861c-9eef24676b7c",
+    "totalAmount": 56.4,
+    "totalItems": 4
   },
-  "source": "ORCHESTRATOR",
+  "source": "ORDER_SERVICE",
   "status": "SUCCESS",
   "eventHistory": [
     {
-      "source": "ORCHESTRATOR",
+      "source": "ORDER_SERVICE",
       "status": "SUCCESS",
       "message": "Saga started!",
-      "createdAt": "2023-04-21T14:32:56.78770516"
+      "createdAt": "2023-10-09T01:44:35.728"
     },
     {
       "source": "PRODUCT_VALIDATION_SERVICE",
       "status": "SUCCESS",
       "message": "Products are validated successfully!",
-      "createdAt": "2023-04-21T14:32:57.169378616"
+      "createdAt": "2023-10-09T01:44:36.196"
     },
     {
       "source": "PAYMENT_SERVICE",
       "status": "SUCCESS",
       "message": "Payment realized successfully!",
-      "createdAt": "2023-04-21T14:32:57.617624655"
+      "createdAt": "2023-10-09T01:44:36.639"
     },
     {
       "source": "INVENTORY_SERVICE",
       "status": "SUCCESS",
       "message": "Inventory updated successfully!",
-      "createdAt": "2023-04-21T14:32:58.139176809"
+      "createdAt": "2023-10-09T01:44:37.117"
     },
     {
-      "source": "ORCHESTRATOR",
+      "source": "ORDER_SERVICE",
       "status": "SUCCESS",
       "message": "Saga finished successfully!",
-      "createdAt": "2023-04-21T14:32:58.248630293"
+      "createdAt": "2023-10-09T01:44:37.21"
     }
   ],
-  "createdAt": "2023-04-21T14:32:58.28"
+  "createdAt": "2023-10-09T01:44:37.209"
 }
 ```
 
 ### Acesso ao MongoDB
-
-[Voltar ao início](#sum%C3%A1rio)
 
 Para conectar-se ao MongoDB via linha de comando (cli) diretamente do docker-compose, basta executar o comando abaixo:
 
@@ -348,6 +344,6 @@ Para realizar queries e validar se os dados existem:
 
 **db.event.find()**
 
-**db.order.find(id=ObjectId("65006786d715e21bd38d1634"))**
+**db.order.find(id=ObjectId("65235b034a6fa17dc661679b"))**
 
-**db.order.find({ "products.product.code": "COMIC_BOOKS"})**# saga-coreografado
+**db.order.find({ "products.product.code": "COMIC_BOOKS"})**
