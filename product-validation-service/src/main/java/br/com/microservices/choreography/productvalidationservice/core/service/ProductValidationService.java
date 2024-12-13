@@ -32,14 +32,14 @@ public class ProductValidationService {
             event.addHistoryFail(CURRENT_SOURCE, ex.getMessage());
         }
 
-        producer.sendEvent(jsonUtil.toJson(event));
+        producer.sendEvent(jsonUtil.toJson(event), "ALTERAR");
     }
 
     public void rollbackEvent(Event event) {
         changeValidationToFail(event);
         event.addHistoryRollback(CURRENT_SOURCE);
 
-        producer.sendEvent(jsonUtil.toJson(event));
+        producer.sendEvent(jsonUtil.toJson(event), "ALTERAR");
     }
 
     private void changeValidationToFail(Event event) {

@@ -43,7 +43,7 @@ public class PaymentService {
             event.addHistoryFail(ex.getMessage(), CURRENT_SOURCE);
         }
 
-        producer.sendEvent(jsonUtil.toJson(event));
+        producer.sendEvent(jsonUtil.toJson(event), "ALTERAR");
     }
 
     private void checkCurrentValidation(Event event) {
@@ -76,7 +76,7 @@ public class PaymentService {
             event.addHistoryFail("- Rollback failed: ".concat(ex.getMessage()), CURRENT_SOURCE);
         }
 
-        producer.sendEvent(jsonUtil.toJson(event));
+        producer.sendEvent(jsonUtil.toJson(event), "ALTERAR");
     }
 
     private void changePaymentStatusToRefund(Event event) {

@@ -103,7 +103,7 @@ public class InventoryService {
             event.addHistoryFail("- Inventory failed: ".concat(ex.getMessage()), CURRENT_SOURCE);
         }
 
-        producer.sendEvent(jsonUtil.toJson(event));
+        producer.sendEvent(jsonUtil.toJson(event), "ALTERAR");
     }
 
     private void returnInventoryToPreviousValues(Event event) {

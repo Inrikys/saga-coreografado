@@ -41,12 +41,6 @@ public class Event {
         addHistory(this, "Fail while doing inventory update: " + message);
     }
 
-    public void addHistoryRollback(String currentSource) {
-        this.setStatus(ESagaStatus.FAIL);
-        this.setSource(currentSource);
-        addHistory(this, "Rollback executed on inventory!");
-    }
-
     public void addHistory(Event event, String message) {
         History history = History.builder()
                 .source(event.getSource())
