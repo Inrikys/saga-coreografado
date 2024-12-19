@@ -27,9 +27,6 @@ public class OrderInventory {
     private Inventory inventory;
 
     @Column(nullable = false)
-    private String productCode;
-
-    @Column(nullable = false)
     private String orderId;
 
     @Column(nullable = false)

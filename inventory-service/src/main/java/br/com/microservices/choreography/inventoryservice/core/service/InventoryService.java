@@ -37,6 +37,8 @@ public class InventoryService {
             createOrderInventory(event);
             updateInventory(event.getPayload());
             event.addHistorySuccess(CURRENT_SOURCE);
+
+            sagaExecutionController.handleSaga(event);
         } catch (Exception ex) {
             log.error("Error trying to update inventory: ", ex);
             event.addHistoryFail(ex.getMessage(), CURRENT_SOURCE);
