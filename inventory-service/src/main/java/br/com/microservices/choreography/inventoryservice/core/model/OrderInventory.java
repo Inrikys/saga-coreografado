@@ -30,9 +30,6 @@ public class OrderInventory {
     private String productCode;
 
     @Column(nullable = false)
-    private Integer available;
-
-    @Column(nullable = false)
     private String orderId;
 
     @Column(nullable = false)

@@ -18,6 +18,8 @@ import static org.springframework.util.ObjectUtils.isEmpty;
 @NoArgsConstructor
 public class Event {
 
+    private static final String SAGA_LOG_ID = "ORDER ID: %s | TRANSACTION ID: %s | EVENT ID %s";
+
     private String id;
     private String transactionId;
     private String orderId;
@@ -26,6 +28,11 @@ public class Event {
     private ESagaStatus status;
     private List<History> eventHistory;
     private LocalDateTime createdAt;
+
+    public String getSagaId() {
+        return String.format(SAGA_LOG_ID,
+                getPayload().getId(), getTransactionId(), getId());
+    }
 
     public void addHistorySuccess(String currentSource) {
         this.setStatus(ESagaStatus.SUCCESS);

@@ -10,6 +10,7 @@ import br.com.microservices.choreography.inventoryservice.core.model.OrderInvent
 import br.com.microservices.choreography.inventoryservice.core.producer.KafkaProducer;
 import br.com.microservices.choreography.inventoryservice.core.repository.InventoryRepository;
 import br.com.microservices.choreography.inventoryservice.core.repository.OrderInvetoryRepository;
+import br.com.microservices.choreography.inventoryservice.core.saga.SagaExecutionController;
 import br.com.microservices.choreography.inventoryservice.core.utils.JsonUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -20,14 +21,12 @@ public class InventoryService {
 
     private static final String CURRENT_SOURCE = "INVENTORY_SERVICE";
 
-    private final JsonUtil jsonUtil;
-    private final KafkaProducer producer;
+    private final SagaExecutionController sagaExecutionController;
     private final InventoryRepository inventoryRepository;
     private final OrderInvetoryRepository orderInventoryRepository;
 
-    public InventoryService(JsonUtil jsonUtil, KafkaProducer producer, InventoryRepository inventoryRepository, OrderInvetoryRepository orderInventoryRepository) {
-        this.jsonUtil = jsonUtil;
-        this.producer = producer;
+    public InventoryService(SagaExecutionController sagaExecutionController, InventoryRepository inventoryRepository, OrderInvetoryRepository orderInventoryRepository) {
+        this.sagaExecutionController = sagaExecutionController;
         this.inventoryRepository = inventoryRepository;
         this.orderInventoryRepository = orderInventoryRepository;
     }
@@ -50,6 +49,7 @@ public class InventoryService {
                     Inventory inventory = findInventoryByProductCode(product.getProduct().getCode());
                     checkInventory(inventory.getAvailable(), product.getQuantity());
                     inventory.setAvailable(inventory.getAvailable() - product.getQuantity());
+                    inventoryRepository.save(inventory);
                 });
     }
 
@@ -103,7 +103,7 @@ public class InventoryService {
             event.addHistoryFail("- Inventory failed: ".concat(ex.getMessage()), CURRENT_SOURCE);
         }
 
-        producer.sendEvent(jsonUtil.toJson(event), "ALTERAR");
+        sagaExecutionController.handleSaga(event);
     }
 
     private void returnInventoryToPreviousValues(Event event) {

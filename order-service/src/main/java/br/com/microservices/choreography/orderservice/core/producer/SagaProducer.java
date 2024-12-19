@@ -11,7 +11,7 @@ public class SagaProducer {
 
     private final KafkaTemplate<String, String> kafkaTemplate;
 
-    @Value("spring.kafka.topic.product-validation-start")
+    @Value("${spring.kafka.topic.product-validation-start}")
     private String productValidationStartTopic;
 
     public SagaProducer(KafkaTemplate<String, String> kafkaTemplate) {

@@ -18,6 +18,7 @@ import static org.springframework.util.ObjectUtils.isEmpty;
 @NoArgsConstructor
 public class Event {
 
+    private static final String SAGA_LOG_ID = "ORDER ID: %s | TRANSACTION ID: %s | EVENT ID %s";
     private static Double REDUCE_IDENTITY_SUM_VALUE = 0.0;
 
     private String id;
@@ -28,6 +29,11 @@ public class Event {
     private ESagaStatus status;
     private List<History> eventHistory;
     private LocalDateTime createdAt;
+
+    public String getSagaId() {
+        return String.format(SAGA_LOG_ID,
+                getPayload().getId(), getTransactionId(), getId());
+    }
 
     public double calculateAmount() {
         return payload.getProducts()

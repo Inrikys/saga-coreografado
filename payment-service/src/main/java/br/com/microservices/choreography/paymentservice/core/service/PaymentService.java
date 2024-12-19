@@ -7,6 +7,7 @@ import br.com.microservices.choreography.paymentservice.core.enums.ESagaStatus;
 import br.com.microservices.choreography.paymentservice.core.model.Payment;
 import br.com.microservices.choreography.paymentservice.core.producer.KafkaProducer;
 import br.com.microservices.choreography.paymentservice.core.repository.PaymentRepository;
+import br.com.microservices.choreography.paymentservice.core.saga.SagaExecutionController;
 import br.com.microservices.choreography.paymentservice.core.utils.JsonUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -17,13 +18,11 @@ public class PaymentService {
 
     private static final String CURRENT_SOURCE = "PAYMENT_SERVICE";
 
-    private final JsonUtil jsonUtil;
-    private final KafkaProducer producer;
     private final PaymentRepository paymentRepository;
+    private final SagaExecutionController sagaExecutionController;
 
-    public PaymentService(JsonUtil jsonUtil, KafkaProducer producer, PaymentRepository paymentRepository) {
-        this.jsonUtil = jsonUtil;
-        this.producer = producer;
+    public PaymentService(PaymentRepository paymentRepository, SagaExecutionController sagaExecutionController) {
+        this.sagaExecutionController = sagaExecutionController;
         this.paymentRepository = paymentRepository;
     }
 
@@ -37,13 +36,15 @@ public class PaymentService {
 
             payment.validateAmount();
             event.addHistorySuccess(CURRENT_SOURCE);
+            payment.setStatus(EPaymentStatus.SUCCESS);
+            paymentRepository.save(payment);
 
         } catch (Exception ex) {
             log.error("Error trying to make payment: ", ex);
             event.addHistoryFail(ex.getMessage(), CURRENT_SOURCE);
         }
 
-        producer.sendEvent(jsonUtil.toJson(event), "ALTERAR");
+        sagaExecutionController.handleSaga(event);
     }
 
     private void checkCurrentValidation(Event event) {
@@ -58,6 +59,7 @@ public class PaymentService {
                 .transactionId(event.getTransactionId())
                 .totalAmount(event.calculateAmount())
                 .totalItems(event.calculateTotalItems())
+                .status(EPaymentStatus.PENDING)
                 .build();
 
         paymentRepository.save(payment);
@@ -76,7 +78,7 @@ public class PaymentService {
             event.addHistoryFail("- Rollback failed: ".concat(ex.getMessage()), CURRENT_SOURCE);
         }
 
-        producer.sendEvent(jsonUtil.toJson(event), "ALTERAR");
+        sagaExecutionController.handleSaga(event);
     }
 
     private void changePaymentStatusToRefund(Event event) {
